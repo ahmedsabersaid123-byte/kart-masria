@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.hotspot.kart" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+  <name>كراش المصرية</name>
+  <content src="index.html" />
+  <icon src="icon.png" />
+  <access origin="*" />
+  <allow-navigation href="*" />
+  <preference name="scheme" value="http" />
+  <preference name="hostname" value="localhost" />
+  <preference name="Orientation" value="landscape" />
+  <preference name="Fullscreen" value="true" />
+  <plugin name="cordova-plugin-websocket-server" />
+  <platform name="android">
+    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+      <application android:usesCleartextTraffic="true" />
+    </edit-config>
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+      <uses-permission android:name="android.permission.WAKE_LOCK" />
+    </config-file>
+  </platform>
+</widget>
