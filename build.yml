@@ -1,0 +1,46 @@
+name: Build Signed APK
+on: [push, workflow_dispatch]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm install -g cordova
+      - name: تجهيز الملفات ورقم الإصدار
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          curl -L -o www/three.min.js https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
+          sed -i "s/<widget /<widget android-versionCode=\"${{ github.run_number }}\" /" config.xml
+      - name: فك مفتاح التوقيع
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: echo "$KS_B64" | base64 -d > kart.keystore
+      - run: cordova platform add android@13
+      - name: بناء APK موقّع
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: |
+          cat > build.json <<JSON
+          {"android":{"release":{"keystore":"kart.keystore","storePassword":"$KS_PASS","alias":"kart","password":"$KS_PASS","keystoreType":"pkcs12"}}}
+          JSON
+          cordova build android --release --buildConfig=build.json -- --packageType=apk
+          mkdir -p out
+          cp platforms/android/app/build/outputs/apk/release/*.apk out/KartMasria.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KartMasria-apk
+          path: out/KartMasria.apk
+      - name: نشر الـ APK في Releases (رابط تحميل ثابت)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: كراش المصرية (آخر نسخة)
+          files: out/KartMasria.apk
+          make_latest: true
